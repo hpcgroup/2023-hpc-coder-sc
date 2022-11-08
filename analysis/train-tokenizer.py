@@ -21,8 +21,8 @@ parser.add_argument('--vocab-size', type=int, default=1024, help='number of toke
 parser.add_argument('--tokenizer-name', type=str, default='hpc-tok', help='output tokenizer name')
 args = parser.parse_args()
 
-environ['TOKENIZERS_PARALLELISM'] = '0'
-environ['OMP_NUM_THREADS'] = '1'
+#environ['TOKENIZERS_PARALLELISM'] = '0'
+environ['OMP_NUM_THREADS'] = '8'
 
 
 # Iterator for Training

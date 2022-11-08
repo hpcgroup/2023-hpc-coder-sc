@@ -12,8 +12,8 @@ export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${CUDA_HOME}/lib64"
 
 echo "device(s): $CUDA_VISIBLE_DEVICES"
 
-#MODEL="/scratch/zt1/project/bhatele-lab/user/dnicho/code-ml/data/gpt-neo-hpc-ckpt/checkpoint-25000"
-MODEL="hpcgroup/gpt-neo-hpc-source"
+#MODEL="/scratch/zt1/project/bhatele-lab/user/dnicho/code-ml/data/polycoder-hpc-source-ckpt/checkpoint-200"
+MODEL="hpcgroup/gpt2-medium-hpc-source"
 TOKENIZER="./hpc-tok"
 DEVICE="$CUDA_VISIBLE_DEVICES"
 PROMPT="/* saxpy -- multiply scalar float a by vector x and add to y */ void saxpy(float *x, float *y, float a, int N) { for (int i = 0; i < N; i++) {"

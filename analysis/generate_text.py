@@ -44,8 +44,8 @@ def main():
         prompt = input('prompt: ')
     
     # create pipeline and generate
-    #generator = pipeline('text-generation', model=args.model, tokenizer=args.tokenizer, framework='pt', device=args.device)
     generator = pipeline('text-generation', model=args.model, tokenizer=args.tokenizer, framework='pt', device=args.device)
+    #generator = pipeline('text-generation', model=args.model, framework='pt', device=args.device)
     
     if reprompt:
         while prompt not in ['q', 'quit', 'exit']:
