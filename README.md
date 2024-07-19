@@ -1,37 +1,63 @@
-# HPC LLM Training
+# HPC-Coder-v2
 
-This repo contains scripts for training LLMs on HPC source code data.
-It is organized as follows:
+The HPC-Coder-v2-6.7b model is an HPC code LLM fine-tuned on an instruction
+dataset catered to common HPC topics such as parallelism, optimization,
+accelerator porting, etc. This version is a fine-tuning of the [Deepseek Coder
+6.7b](https://huggingface.co/deepseek-ai/deepseek-coder-6.7b-base) model. It is
+fine-tuned on the
+[hpc-instruct](https://huggingface.co/datasets/hpcgroup/hpc-instruct),
+[oss-instruct](https://huggingface.co/datasets/ise-uiuc/Magicoder-OSS-Instruct-75K),
+and
+[evol-instruct](https://huggingface.co/datasets/nickrosh/Evol-Instruct-Code-80k-v1)
+datasets. We utilized the distributed training library
+[AxoNN](https://github.com/axonn-ai/axonn) to fine-tune in parallel across many
+GPUs.
 
-- ***data:*** scripts and utilities for collecting and preprocessing the dataset [[README]](data/README.md)
-- ***analysis:*** scripts related to analyzing dataset and training LLM [[README]](analysis/README.md)
+HPC-Coder-v2-6.7b is the best performing LLM under 30b parameters on the
+[ParEval](https://github.com/parallelcodefoundry/ParEval) parallel code
+generation benchmark in terms of _correctness_ and _performance_. It scores
+similarly to 34B and commercial models like Phind-V2 and GPT-4 on parallel code
+generation.
 
-To overview of the workflow from start to finish is as follows.
-Use `data/collect-repo-metadata.py` and `data/edit-metadata.py` to create dataset of GitHub repositories, if desired,
-otherwise use the existing `repos-gt3.csv` dataset.
-Run `data/clone-repos.py` to clone the repositories to a desired location.
-`data/collect-dataset.py` script can then be used to create a json lines dataset with all the textual data.
-The `analysis/run_clm-*.sbatch` scripts can then be used to train the models on the data.
+## Using HPC-Coder-v2
 
-## Notes and Misc.
+The model is provided as a standard huggingface model with safetensor weights.
+The weights are available on
+[huggingface](https://huggingface.co/hpcgroup/hpc-coder-v2-6.7b). It can be used
+with [transformers
+pipelines](https://huggingface.co/docs/transformers/en/main_classes/pipelines),
+[vllm](https://github.com/vllm-project/vllm), or any other standard model
+inference framework. HPC-Coder-v2 is an instruct model and prompts need to be
+formatted as instructions for best results. It was trained with the following
+instruct template:
 
-*Weird bug fix #1:*
-I had to change the default value of `max_workers` from 64 to 32 in the parameter list of 
-`_get_origin_metadata_locally_or_by_urls` in `datasets/data_files.py#L708`. 
-Zaratan's CPUs have 64 cores, but tqdm errors trying to start 64 threads for some reason.
-Similar to this I also generally have to `export TOKENIZERS_PARALLELISM=false` to prevent 
-huggingface from spinning up threads in forked processes.
+```md
+Below is an instruction that describes a task. Write a response that appropriately completes the request.
 
-*Weird bug fix #2:*
-I had to change the following lines in `torch/distributed/distributed_c10d.py`, line 2068.
-The PolyCoder model seems to output non-contiguous logits
-and there is a current bug in PyTorch where the NCCL backend errors if passed
-non-contiguous tensors to `all_gather`. This bug is documented [here](https://github.com/pytorch/pytorch/issues/73515)
-and [here](https://github.com/pytorch/pytorch/pull/75276).
-With a future release of torch this likely won't be necessary.
+### Instruction:
+{instruction}
 
-```python
-work = default_pg.allgather([tensor_list], [tensor])
-# to -->
-work = default_pg.allgather([[t.contiguous() for t in tensor_list]], [tensor.contiguous()])
+### Response:
+
 ```
+
+## Quantized Models
+
+4 and 8 bit quantized weights are available in the GGUF format for use with
+[llama.cpp](https://github.com/ggerganov/llama.cpp). The 4 bit model requires
+~3.8 GB memory and can be found
+[here](https://huggingface.co/hpcgroup/hpc-coder-v2-6.7b-Q4_K_S-GGUF). The 8 bit
+model requires ~7.1 GB memory and can be found
+[here](https://huggingface.co/hpcgroup/hpc-coder-v2-6.7b-Q8_0-GGUF). Further
+information on how to use them with llama.cpp can be found in [its
+documentation](https://github.com/ggerganov/llama.cpp).
+
+## Evaluation
+
+We evaluated the model on the ParEval benchmark for parallel code generation. It
+scores a pass@1 of 31.17 on parallel code generation tasks including OpenMP,
+MPI, MPI+OpenMP, CUDA, HIP, and Kokkos. This is the best performing open-source
+model on ParEval under 30B parameters. Furthermore, it performs similarly to the
+34B parameter model Phind-V2-34B (pass@1 = 32.12) and GPT-4 (pass@1 = 37.75).
+Check out [ParEval](https://github.com/parallelcodefoundry/ParEval) for more
+information.
