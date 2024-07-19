@@ -1,4 +1,4 @@
-# HPC-Coder
+# HPC-Coder-v2
 
 The HPC-Coder-v2-6.7b model is an HPC code LLM fine-tuned on an instruction
 dataset catered to common HPC topics such as parallelism, optimization,
@@ -51,3 +51,13 @@ model requires ~7.1 GB memory and can be found
 [here](https://huggingface.co/hpcgroup/hpc-coder-v2-6.7b-Q8_0-GGUF). Further
 information on how to use them with llama.cpp can be found in [its
 documentation](https://github.com/ggerganov/llama.cpp).
+
+## Evaluation
+
+We evaluated the model on the ParEval benchmark for parallel code generation. It
+scores a pass@1 of 31.17 on parallel code generation tasks including OpenMP,
+MPI, MPI+OpenMP, CUDA, HIP, and Kokkos. This is the best performing open-source
+model on ParEval under 30B parameters. Furthermore, it performs similarly to the
+34B parameter model Phind-V2-34B (pass@1 = 32.12) and GPT-4 (pass@1 = 37.75).
+Check out [ParEval](https://github.com/parallelcodefoundry/ParEval) for more
+information.
